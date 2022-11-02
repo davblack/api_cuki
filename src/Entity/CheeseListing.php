@@ -2,7 +2,12 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use App\Repository\CheeseListingRepository;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
@@ -22,12 +27,44 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
         'put'
     ],
     shortName: 'cheeses',
+    attributes: [
+      'pagination_items_per_page' => 10,
+      'formats' => [
+          'json',
+          'jsonld',
+          'html',
+          'jsonhal',
+          'csv' => 'text/csv'
+      ]
+    ],
     denormalizationContext: [
         'groups' => [self::CHEESE_LISTING_WRITE]
     ],
     normalizationContext: [
         'groups' => [self::CHEESE_LISTING_READ]
     ],
+)]
+#[ApiFilter(
+    BooleanFilter::class,
+    properties: [
+        'isPublished',
+    ],
+)]
+#[ApiFilter(
+    SearchFilter::class,
+    properties: [
+        'title' => 'partial',
+        'description' => 'partial'
+    ]
+)]
+#[ApiFilter(
+    RangeFilter::class,
+    properties: [
+        'price'
+    ]
+)]
+#[ApiFilter(
+    PropertyFilter::class,
 )]
 class CheeseListing
 {
@@ -58,6 +95,10 @@ class CheeseListing
     #[ORM\Column]
     private ?bool $isPublished = false;
 
+    #[ORM\ManyToOne(inversedBy: 'cheeseListings')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $onwer = null;
+
     public function __construct(string $title)
     {
         $this->cretedAt = new \DateTimeImmutable();
@@ -84,6 +125,15 @@ class CheeseListing
     public function getDescription(): ?string
     {
         return $this->description;
+    }
+
+    #[Groups([self::CHEESE_LISTING_READ])]
+    public function getShortDescription(): ?string
+    {
+        if(strlen($this->description) < 40){
+            return $this->description;
+        }
+        return substr($this->description, 0, 40).'...';
     }
 
     public function setDescription(string $description): self
@@ -132,6 +182,18 @@ class CheeseListing
     public function setIsPublished(bool $isPublished): self
     {
         $this->isPublished = $isPublished;
+
+        return $this;
+    }
+
+    public function getOnwer(): ?User
+    {
+        return $this->onwer;
+    }
+
+    public function setOnwer(?User $onwer): self
+    {
+        $this->onwer = $onwer;
 
         return $this;
     }
