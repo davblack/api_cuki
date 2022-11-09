@@ -33,6 +33,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     public const USER_READ = "user:read";
     public const USER_WRITE = "user:write";
+    public const CHEESE_LISTING_READ = "cheese_listing:read";
+    public const CHEESE_LISTING_WRITE = "cheese_listing:write";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -56,11 +58,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups([self::USER_READ, self::USER_WRITE])]
+    #[Groups([self::USER_READ, self::USER_WRITE, self::CHEESE_LISTING_WRITE])]
     #[Assert\NotBlank()]
-    private ?string $username = null;
+    public ?string $username = null;
 
-    #[ORM\OneToMany(mappedBy: 'onwer', targetEntity: CheeseListing::class)]
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: CheeseListing::class)]
+    #[Groups([self::USER_READ])]
     private Collection $cheeseListings;
 
     public function __construct()
@@ -92,7 +95,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->username;
     }
 
     /**
@@ -100,7 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUsername(): string
     {
-        return (string) $this->email;
+        return (string) $this->username;
     }
 
     /**
@@ -176,7 +179,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->cheeseListings->contains($cheeseListing)) {
             $this->cheeseListings->add($cheeseListing);
-            $cheeseListing->setOnwer($this);
+            $cheeseListing->setOwner($this);
         }
 
         return $this;
@@ -186,8 +189,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->cheeseListings->removeElement($cheeseListing)) {
             // set the owning side to null (unless already changed)
-            if ($cheeseListing->getOnwer() === $this) {
-                $cheeseListing->setOnwer(null);
+            if ($cheeseListing->getOwner === $this){
+                $cheeseListing->setOwner(null);
             }
         }
 

@@ -19,10 +19,7 @@ services:
   php:
     image: thecodingmachine/php:8.1-v4-fpm
     volumes:
-      - ./htdocs:/var/www/htdocs
-      - ./docker.conf:/etc/php/8.0/fpm/pool.d/docker.conf
-      - ./www.conf:/etc/php/8.0/fpm/pool.d/www.conf
-      - ./zz-docker.conf:/etc/php/8.0/fpm/pool.d/zz-docker.conf
+      - ./:/var/www/html/:delegated
     depends_on:
       - database
     environment:
@@ -49,7 +46,7 @@ services:
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=database
+      - POSTGRES_DB=demo-db
     volumes:
       - database-volume:/var/lib/postgresql/data
     ports:

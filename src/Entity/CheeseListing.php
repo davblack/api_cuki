@@ -70,6 +70,8 @@ class CheeseListing
 {
     public const CHEESE_LISTING_READ = "cheese_listing:read";
     public const CHEESE_LISTING_WRITE = "cheese_listing:write";
+    public const USER_READ = "user:read";
+    public const USER_WRITE = "user:write";
 
 
     #[ORM\Id]
@@ -78,7 +80,7 @@ class CheeseListing
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups([self::CHEESE_LISTING_READ, self::CHEESE_LISTING_WRITE])]
+    #[Groups([self::CHEESE_LISTING_READ, self::CHEESE_LISTING_WRITE, self::USER_READ])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -86,7 +88,7 @@ class CheeseListing
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups([self::CHEESE_LISTING_READ, self::CHEESE_LISTING_WRITE])]
+    #[Groups([self::CHEESE_LISTING_READ, self::CHEESE_LISTING_WRITE, self::USER_READ])]
     private ?int $price = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -97,7 +99,8 @@ class CheeseListing
 
     #[ORM\ManyToOne(inversedBy: 'cheeseListings')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $onwer = null;
+    #[Groups([self::CHEESE_LISTING_READ, self::CHEESE_LISTING_WRITE])]
+    private ?User $owner = null;
 
     public function __construct(string $title)
     {
@@ -186,14 +189,14 @@ class CheeseListing
         return $this;
     }
 
-    public function getOnwer(): ?User
+    public function getOwner(): ?User
     {
-        return $this->onwer;
+        return $this->owner;
     }
 
-    public function setOnwer(?User $onwer): self
+    public function setOwner(?User $owner): self
     {
-        $this->onwer = $onwer;
+        $this->owner = $owner;
 
         return $this;
     }
